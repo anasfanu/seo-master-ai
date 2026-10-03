@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO Master AI - Pro by anasfanu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: { dark: { 900: '#0f172a', 800: '#1e293b', 700: '#334155' } }
+                }
+            }
+        }
+    </script>
+    <style> 
+        body { font-family: 'Inter', sans-serif; } 
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-dark-900 dark:text-slate-200 transition-colors duration-300" 
+      x-data="seoApp()" x-init="initDarkMode()">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-indigo-700 to-purple-700 dark:from-indigo-900 dark:to-purple-900 text-white p-6 shadow-lg">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-extrabold flex items-center gap-2"> SEO Master AI by anasfanu</h1>
+                <p class="mt-1 text-indigo-200 text-sm">Optimasi On-Page, Crawling, & Tren Global/ID</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <button @click="toggleDarkMode()" class="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition">
+                    <span x-show="!darkMode">🌙</span><span x-show="darkMode">☀️</span>
+                </button>
+                <div class="text-right text-xs text-indigo-200 hidden md:block">
+                    <p>Powered by Groq</p><p class="mt-1">v4.1 Full Export Pro</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto p-6 space-y-6">
+        
+        <!-- Input Section -->
+        <div class="bg-white dark:bg-dark-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-dark-700">
+            <!-- Tab Switcher (3 Tab) -->
+            <div class="flex border-b border-slate-200 dark:border-dark-700 mb-6 overflow-x-auto">
+                <button @click="mode = 'crawl'" :class="mode === 'crawl' ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'" class="px-4 py-3 border-b-2 font-bold text-sm uppercase tracking-wider transition flex items-center gap-2 whitespace-nowrap">
+                    🌐 Crawl Website
+                </button>
+                <button @click="mode = 'manual'" :class="mode === 'manual' ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'" class="px-4 py-3 border-b-2 font-bold text-sm uppercase tracking-wider transition flex items-center gap-2 whitespace-nowrap">
+                    📝 Input Artikel Manual
+                </button>
+                <!-- Tab Hasil Tulis Ulang - Muncul hanya setelah tombol diklik -->
+                <button x-show="showHumanTab" @click="mode = 'human'" :class="mode === 'human' ? 'border-purple-600 text-purple-600 dark:text-purple-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'" class="px-4 py-3 border-b-2 font-bold text-sm uppercase tracking-wider transition flex items-center gap-2 whitespace-nowrap">
+                    ✨ Hasil Tulis Ulang
+                </button>
+            </div>
+
+            <!-- Konten Tab: Crawl -->
+            <div x-show="mode === 'crawl'">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">URL Website Target</label>
+                <input type="url" x-model="url" placeholder="https://website-anda.com/halaman-target" class="w-full px-4 py-3 bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition">
+            </div>
+
+            <!-- Konten Tab: Manual -->
+            <div x-show="mode === 'manual'">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tempel (Paste) Artikel Anda di Sini</label>
+                <textarea x-model="articleText" rows="8" placeholder="Paste seluruh isi artikel Anda di sini..." class="w-full px-4 py-3 bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition font-mono text-sm"></textarea>
+                <p class="text-xs text-slate-500 mt-1">Jumlah kata: <span x-text="articleText.trim().split(/\s+/).filter(w => w.length > 0).length"></span></p>
+            </div>
+
+            <!-- Konten Tab: Hasil Tulis Ulang (Human-like) -->
+            <div x-show="mode === 'human'">
+                <div class="flex justify-between items-center mb-4 flex-wrap gap-3">
+                    <div>
+                        <h3 class="text-lg font-bold text-purple-700 dark:text-purple-400">Artikel Human-like Siap Publish</h3>
+                        <p class="text-sm text-slate-500">Jumlah kata: <span x-text="humanWordCount"></span> | Format: HTML Lengkap</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button @click="exportHumanLike()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2">📥 Export HTML</button>
+                        <button @click="mode = (url ? 'crawl' : 'manual')" class="bg-slate-500 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2">⬅️ Kembali</button>
+                    </div>
+                </div>
+
+                <!-- Skor Analisis Artikel Hasil Tulis Ulang -->
+                <div class="bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-900/30 p-5 rounded-2xl mb-4">
+                    <h4 class="text-sm font-bold text-purple-800 dark:text-purple-400 uppercase tracking-wide mb-3">📊 Skor Analisis Artikel Hasil Tulis Ulang</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <div class="flex justify-between text-sm font-semibold mb-1"><span class="text-slate-600 dark:text-slate-400">UI/UX & Teknis</span><span class="text-indigo-600" x-text="humanAnalysis?.scores?.ui_ux + '%'"></span></div>
+                            <div class="w-full bg-slate-200 dark:bg-dark-700 rounded-full h-2.5"><div class="bg-indigo-600 h-2.5 rounded-full" :style="`width: ${humanAnalysis?.scores?.ui_ux}%`"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm font-semibold mb-1"><span class="text-slate-600 dark:text-slate-400">Kualitas Konten</span><span class="text-green-600" x-text="humanAnalysis?.scores?.content + '%'"></span></div>
+                            <div class="w-full bg-slate-200 dark:bg-dark-700 rounded-full h-2.5"><div class="bg-green-600 h-2.5 rounded-full" :style="`width: ${humanAnalysis?.scores?.content}%`"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm font-semibold mb-1"><span class="text-slate-600 dark:text-slate-400">Struktur Halaman</span><span class="text-orange-500" x-text="humanAnalysis?.scores?.structure + '%'"></span></div>
+                            <div class="w-full bg-slate-200 dark:bg-dark-700 rounded-full h-2.5"><div class="bg-orange-500 h-2.5 rounded-full" :style="`width: ${humanAnalysis?.scores?.structure}%`"></div></div>
+                        </div>
+                    </div>
+                    <div class="mt-3 p-3 bg-white dark:bg-dark-800 rounded-lg text-sm text-slate-600 dark:text-slate-400 flex flex-wrap gap-4">
+                        <span><strong>Total Skor:</strong> <span x-text="humanAnalysis?.scores?.overall"></span>%</span>
+                        <span><strong>Estimasi Rank:</strong> #<span x-text="humanAnalysis?.estimated_rank"></span></span>
+                        <span><strong>H1:</strong> <span x-text="humanAnalysis?.h1_count"></span></span>
+                        <span><strong>H2:</strong> <span x-text="humanAnalysis?.h2_count"></span></span>
+                        <span><strong>H3:</strong> <span x-text="humanAnalysis?.h3_count"></span></span>
+                        <span><strong>Paragraf:</strong> <span x-text="humanAnalysis?.paragraph_count"></span></span>
+                    </div>
+                </div>
+
+                <!-- Iframe untuk merender HTML hasil AI -->
+                <iframe :srcdoc="humanHtmlResult" class="w-full h-[600px] border border-slate-200 dark:border-dark-700 rounded-lg bg-white shadow-inner"></iframe>
+            </div>
+
+            <!-- Area Bawah Input (Model & Tombol Aksi) - Hanya di mode crawl/manual -->
+            <div x-show="mode !== 'human'" class="mt-6">
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">AI Model</label>
+                    <select x-model="selectedModel" class="w-full px-4 py-3 bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                        <option value="" disabled>Pilih Model...</option>
+                        <template x-for="model in availableModels" :key="model">
+                            <option :value="model" x-text="model"></option>
+                        </template>
+                    </select>
+                </div>
+
+                <div class="flex gap-3">
+                    <button @click="loadModels()" x-show="availableModels.length === 0" class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">1. Load Model</button>
+                    <button @click="processSEO()" :disabled="loading || !selectedModel || (mode === 'crawl' && !url) || (mode === 'manual' && !articleText)" class="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white px-6 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition shadow-md">
+                        <span x-show="!loading" x-text="mode === 'crawl' ? '🔍 Crawling & Optimasi SEO' : '✨ Optimasi Artikel Manual'"></span>
+                        <span x-show="loading" class="animate-spin text-xl">⏳</span>
+                    </button>
+                </div>
+                <p x-show="errorMsg" class="text-red-500 text-sm mt-3 bg-red-50 dark:bg-red-900/20 p-2 rounded" x-text="errorMsg"></p>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div x-show="loading" class="text-center py-12 bg-white dark:bg-dark-800 rounded-2xl shadow-sm border border-slate-200 dark:border-dark-700" x-transition>
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent mb-4"></div>
+            <p class="text-lg font-semibold" x-text="loadingText"></p>
+        </div>
+
+        <!-- Results Section (Hanya muncul di mode crawl/manual setelah proses) -->
+        <div x-show="result && !loading && mode !== 'human'" class="space-y-6" x-transition>
+            
+            <!-- 1. Pre-Optimization Analysis -->
+            <div class="bg-white dark:bg-dark-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-dark-700">
+                <h3 class="text-lg font-bold mb-4 flex items-center gap-2"> Analisis Awal</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <div class="flex justify-between text-sm font-semibold mb-1"><span class="text-slate-600 dark:text-slate-400">UI/UX & Teknis</span><span class="text-indigo-600" x-text="result.original_data.scores.ui_ux + '%'"></span></div>
+                        <div class="w-full bg-slate-200 dark:bg-dark-700 rounded-full h-2.5"><div class="bg-indigo-600 h-2.5 rounded-full" :style="`width: ${result.original_data.scores.ui_ux}%`"></div></div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-sm font-semibold mb-1"><span class="text-slate-600 dark:text-slate-400">Kualitas Konten</span><span class="text-green-600" x-text="result.original_data.scores.content + '%'"></span></div>
+                        <div class="w-full bg-slate-200 dark:bg-dark-700 rounded-full h-2.5"><div class="bg-green-600 h-2.5 rounded-full" :style="`width: ${result.original_data.scores.content}%`"></div></div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-sm font-semibold mb-1"><span class="text-slate-600 dark:text-slate-400">Struktur Halaman</span><span class="text-orange-500" x-text="result.original_data.scores.structure + '%'"></span></div>
+                        <div class="w-full bg-slate-200 dark:bg-dark-700 rounded-full h-2.5"><div class="bg-orange-500 h-2.5 rounded-full" :style="`width: ${result.original_data.scores.structure}%`"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Target Index Comparison & SERP Real -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-900/30 p-5 rounded-2xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-blue-200 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 text-xs font-bold px-3 py-1 rounded-bl-lg">REAL-TIME</div>
+                    <h3 class="text-blue-800 dark:text-blue-400 font-bold text-sm uppercase tracking-wide mt-2">Posisi Saat Ini</h3>
+                    <p class="text-3xl font-extrabold text-blue-600 mt-2" x-text="result.optimization.serp_data.rank ? '#' + result.optimization.serp_data.rank : '-'"></p>
+                    <p class="text-xs text-blue-700 dark:text-blue-400 mt-1" x-text="result.optimization.serp_data.status"></p>
+                </div>
+                <div class="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 p-5 rounded-2xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-red-200 dark:bg-red-900/50 text-red-800 dark:text-red-200 text-xs font-bold px-3 py-1 rounded-bl-lg">ANALISIS</div>
+                    <h3 class="text-red-800 dark:text-red-400 font-bold text-sm uppercase tracking-wide mt-2">Skor Awal</h3>
+                    <p class="text-3xl font-extrabold text-red-600 mt-2" x-text="result.original_data.scores.overall + '%'"></p>
+                </div>
+                <div class="bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-900/30 p-5 rounded-2xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-green-200 dark:bg-green-900/50 text-green-800 dark:text-green-200 text-xs font-bold px-3 py-1 rounded-bl-lg">PREDIKSI AI</div>
+                    <h3 class="text-green-800 dark:text-green-400 font-bold text-sm uppercase tracking-wide mt-2">Estimasi Setelah Optimasi</h3>
+                    <p class="text-3xl font-extrabold text-green-600 mt-2" x-text="'#'+ result.optimization.estimated_rank_after"></p>
+                </div>
+            </div>
+
+            <!-- Tombol Aksi Lanjutan (Export, Optimasi Ulang, Tulis Ulang) -->
+            <div class="flex justify-between items-center flex-wrap gap-3">
+                <div class="flex flex-wrap gap-2">
+                    <button @click="exportResults()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2">📥 Export HTML</button>
+                    <button @click="reOptimize()" :disabled="loading" class="bg-amber-500 hover:bg-amber-600 disabled:bg-slate-300 text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2">
+                        <span x-show="!loading"> Optimasi Ulang</span>
+                        <span x-show="loading" class="animate-spin"></span>
+                    </button>
+                </div>
+                <button @click="optimizeHumanLike()" :disabled="loading" class="bg-purple-600 hover:bg-purple-700 disabled:bg-slate-300 text-white px-6 py-3 rounded-lg text-sm font-bold transition flex items-center gap-2 shadow-lg transform hover:scale-105">
+                    <span x-show="!loading">✨ Tulis Ulang Artikel (Human-like & Anti AI Detector)</span>
+                    <span x-show="loading" class="animate-spin">⏳</span>
+                </button>
+            </div>
+
+            <!-- Hasil Optimasi On-Page -->
+            <div class="bg-white dark:bg-dark-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-dark-700 space-y-5">
+                <h3 class="text-lg font-bold border-b border-slate-100 dark:border-dark-700 pb-3">📝 Hasil Optimasi On-Page (Siap Copy-Paste)</h3>
+                
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">Meta Title (Max 60 char)</label>
+                    <div class="flex items-center gap-2 mt-1">
+                        <input type="text" :value="result.optimization.meta_title" readonly class="flex-1 bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-dark-700 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none">
+                        <button @click="copyToClipboard(result.optimization.meta_title)" class="bg-indigo-100 dark:bg-indigo-900/30 hover:bg-indigo-200 text-indigo-700 dark:text-indigo-400 px-3 py-2 rounded-lg text-xs font-bold transition">Copy</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">Meta Description (Max 160 char)</label>
+                    <div class="flex items-start gap-2 mt-1">
+                        <textarea :value="result.optimization.meta_description" readonly rows="2" class="flex-1 bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-dark-700 rounded-lg px-3 py-2 text-sm font-mono resize-none focus:outline-none"></textarea>
+                        <button @click="copyToClipboard(result.optimization.meta_description)" class="bg-indigo-100 dark:bg-indigo-900/30 hover:bg-indigo-200 text-indigo-700 dark:text-indigo-400 px-3 py-2 rounded-lg text-xs font-bold transition shrink-0">Copy</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase">Tag H1</label>
+                        <div class="flex items-center gap-2 mt-1">
+                            <input type="text" :value="result.optimization.h1" readonly class="flex-1 bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-dark-700 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none">
+                            <button @click="copyToClipboard(result.optimization.h1)" class="bg-indigo-100 dark:bg-indigo-900/30 hover:bg-indigo-200 text-indigo-700 dark:text-indigo-400 px-3 py-2 rounded-lg text-xs font-bold transition">Copy</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase">SEO Friendly URL</label>
+                        <div class="flex items-center gap-2 mt-1">
+                            <input type="text" :value="result.optimization.seo_friendly_url" readonly class="flex-1 bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-dark-700 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none">
+                            <button @click="copyToClipboard(result.optimization.seo_friendly_url)" class="bg-indigo-100 dark:bg-indigo-900/30 hover:bg-indigo-200 text-indigo-700 dark:text-indigo-400 px-3 py-2 rounded-lg text-xs font-bold transition">Copy</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">LSI Keywords (Max 255 char)</label>
+                    <div class="flex items-start gap-2 mt-1">
+                        <textarea :value="result.optimization.lsi_keywords" readonly rows="2" class="flex-1 bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-dark-700 rounded-lg px-3 py-2 text-sm font-mono resize-none focus:outline-none"></textarea>
+                        <button @click="copyToClipboard(result.optimization.lsi_keywords)" class="bg-indigo-100 dark:bg-indigo-900/30 hover:bg-indigo-200 text-indigo-700 dark:text-indigo-400 px-3 py-2 rounded-lg text-xs font-bold transition shrink-0">Copy</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">Saran Struktur H2</label>
+                    <ul class="mt-2 space-y-2">
+                        <template x-for="(h2, index) in result.optimization.h2_suggestions" :key="index">
+                            <li class="flex items-center gap-2 bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-dark-700 rounded-lg px-3 py-2">
+                                <span class="text-indigo-600 font-bold text-xs font-mono">&lt;h2&gt;</span>
+                                <span class="text-sm flex-1" x-text="h2"></span>
+                                <button @click="copyToClipboard(h2)" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 text-xs font-bold">Copy</button>
+                            </li>
+                        </template>
+                    </ul>
+                </div>
+
+                <div class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/30 p-4 rounded-lg mt-4">
+                    <h4 class="text-sm font-bold text-indigo-800 dark:text-indigo-300 mb-1 flex items-center gap-2">💡 Catatan Strategi AI:</h4>
+                    <p class="text-sm text-indigo-700 dark:text-indigo-200 leading-relaxed" x-text="result.optimization.optimization_notes"></p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div x-show="toastMsg" x-transition class="fixed bottom-6 right-6 bg-emerald-500 text-white px-6 py-3 rounded-lg shadow-lg font-semibold z-50 flex items-center gap-2" x-cloak>
+        ✅ <span x-text="toastMsg"></span>
+    </div>
+
+    <script>
+        function seoApp() {
+            return {
+                darkMode: false,
+                mode: 'crawl',
+                url: '',
+                articleText: '',
+                selectedModel: '',
+                availableModels: [],
+                loading: false,
+                loadingText: 'Menganalisis...',
+                errorMsg: '',
+                result: null,
+                toastMsg: '',
+                
+                // State untuk tab Hasil Tulis Ulang
+                showHumanTab: false,
+                humanHtmlResult: '',
+                humanWordCount: 0,
+                humanAnalysis: null,
+
+                initDarkMode() {
+                    this.darkMode = localStorage.getItem('darkMode') === 'true';
+                    if (this.darkMode) document.documentElement.classList.add('dark');
+                },
+                toggleDarkMode() {
+                    this.darkMode = !this.darkMode;
+                    if (this.darkMode) document.documentElement.classList.add('dark');
+                    else document.documentElement.classList.remove('dark');
+                    localStorage.setItem('darkMode', this.darkMode);
+                },
+                showToast(msg) {
+                    this.toastMsg = msg;
+                    setTimeout(() => this.toastMsg = '', 2500);
+                },
+
+                async loadModels() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch('http://localhost:8000/api/models');
+                        if (!response.ok) throw new Error((await response.json()).detail);
+                        const data = await response.json();
+                        this.availableModels = data.models;
+                        this.selectedModel = this.availableModels.find(m => m.includes('70b') || m.includes('mixtral')) || this.availableModels[0];
+                        this.showToast('Model berhasil dimuat!');
+                    } catch (error) { this.errorMsg = error.message; } 
+                    finally { this.loading = false; }
+                },
+
+                async processSEO() {
+                    if (this.mode === 'crawl' && !this.url) { this.errorMsg = 'URL wajib diisi!'; return; }
+                    if (this.mode === 'manual' && !this.articleText) { this.errorMsg = 'Artikel manual wajib diisi!'; return; }
+                    if (!this.selectedModel) { this.errorMsg = 'Pilih model AI terlebih dahulu!'; return; }
+
+                    this.loading = true;
+                    this.errorMsg = '';
+                    this.result = null;
+                    this.showHumanTab = false;
+                    this.loadingText = this.mode === 'crawl' ? 'Sedang crawling data website...' : 'Menganalisis artikel manual...';
+
+                    try {
+                        const payload = { model: this.selectedModel };
+                        if (this.mode === 'crawl') payload.url = this.url;
+                        if (this.mode === 'manual') payload.article_text = this.articleText;
+
+                        const response = await fetch('http://localhost:8000/api/optimize', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) throw new Error((await response.json()).detail);
+                        this.result = await response.json();
+                        this.showToast('Optimasi SEO Berhasil!');
+                    } catch (error) { this.errorMsg = error.message; } 
+                    finally { this.loading = false; }
+                },
+
+                async reOptimize() {
+                    if (!this.result) return;
+                    this.loading = true;
+                    this.loadingText = 'AI sedang melakukan optimasi ulang yang lebih agresif...';
+                    this.errorMsg = '';
+                    
+                    try {
+                        const payload = { model: this.selectedModel };
+                        if (this.mode === 'crawl') payload.url = this.url;
+                        if (this.mode === 'manual') payload.article_text = this.articleText;
+
+                        const response = await fetch('http://localhost:8000/api/optimize', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        if (!response.ok) throw new Error((await response.json()).detail);
+                        this.result = await response.json();
+                        this.showToast('Optimasi Ulang Berhasil!');
+                    } catch (error) { this.errorMsg = error.message; } 
+                    finally { this.loading = false; }
+                },
+
+                async optimizeHumanLike() {
+                    if (!this.result) { this.errorMsg = 'Jalankan optimasi SEO terlebih dahulu!'; return; }
+                    
+                    this.loading = true;
+                    this.loadingText = 'AI sedang menulis ulang artikel dengan gaya manusia (Anti AI Detector)...';
+                    this.errorMsg = '';
+                    
+                    try {
+                        const payload = { model: this.selectedModel };
+                        if (this.mode === 'crawl') payload.url = this.url;
+                        if (this.mode === 'manual') payload.article_text = this.articleText;
+
+                        const response = await fetch('http://localhost:8000/api/optimize-human', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) throw new Error((await response.json()).detail);
+                        const data = await response.json();
+                        
+                        // Simpan hasil ke state
+                        this.humanHtmlResult = data.human_html;
+                        this.humanWordCount = data.word_count;
+                        this.humanAnalysis = data.analysis; // <-- Skor analisis
+                        this.showHumanTab = true;
+                        this.mode = 'human'; // Pindah tab otomatis
+                        this.showToast('Artikel berhasil ditulis ulang! Lihat tab "Hasil Tulis Ulang"');
+                        
+                    } catch (error) { 
+                        this.errorMsg = error.message; 
+                    } finally { 
+                        this.loading = false; 
+                    }
+                },
+
+                exportHumanLike() {
+                    if (!this.humanHtmlResult) return;
+                    const fullHTML = `<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Artikel SEO Optimized</title></head><body>${this.humanHtmlResult}</body></html>`;
+                    const blob = new Blob([fullHTML], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'artikel-human-like-seo.html';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    this.showToast('File HTML berhasil didownload!');
+                },
+
+                exportResults() {
+                    if (!this.result) return;
+                    const opt = this.result.optimization;
+                    const orig = this.result.original_data;
+                    const sourceUrl = this.url || 'https://domain-anda.com' + opt.seo_friendly_url;
+                    
+                    const htmlContent = `<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hasil Optimasi SEO - ${opt.meta_title}</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background: #f8fafc; color: #1e293b; line-height: 1.6; }
+        .header { background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; padding: 30px; border-radius: 12px; margin-bottom: 30px; }
+        .header h1 { margin: 0 0 10px 0; font-size: 28px; } .header p { margin: 0; opacity: 0.9; }
+        .section { background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
+        .section h2 { color: #4f46e5; margin-top: 0; font-size: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+        .label { font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+        .value { background: #f1f5f9; padding: 12px 15px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 14px; border-left: 4px solid #4f46e5; margin-bottom: 15px; word-break: break-word; }
+        .tag { display: inline-block; background: #e0e7ff; color: #4338ca; padding: 4px 12px; border-radius: 20px; font-size: 13px; margin: 3px; font-weight: 500; }
+        .tag-green { background: #d1fae5; color: #065f46; } .tag-blue { background: #dbeafe; color: #1e40af; }
+        .score-box { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        .score-item { text-align: center; padding: 15px; background: #f8fafc; border-radius: 8px; }
+        .score-item .number { font-size: 32px; font-weight: bold; color: #4f46e5; } .score-item .label-text { font-size: 12px; color: #64748b; text-transform: uppercase; }
+        .rank-comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .rank-box { padding: 20px; border-radius: 8px; text-align: center; }
+        .rank-before { background: #fee2e2; border: 2px solid #fecaca; } .rank-after { background: #d1fae5; border: 2px solid #a7f3d0; }
+        .rank-number { font-size: 36px; font-weight: bold; } .rank-before .rank-number { color: #dc2626; } .rank-after .rank-number { color: #059669; }
+        .note { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px; border-radius: 8px; margin-top: 20px; }
+        .copy-hint { font-size: 11px; color: #94a3b8; font-style: italic; margin-top: -10px; margin-bottom: 10px; }
+        h3 { color: #334155; margin-top: 20px; } ul { padding-left: 20px; } li { margin-bottom: 8px; }
+        .h2-item { background: #f1f5f9; padding: 10px 15px; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid #4f46e5; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 Hasil Optimasi SEO</h1>
+        <p>Dibuat oleh SEO Master AI by anasfanu | ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+    </div>
+    <div class="section">
+        <h2>📊 Analisis Sebelum Optimasi</h2>
+        <div class="score-box">
+            <div class="score-item"><div class="number">${orig.scores.ui_ux}%</div><div class="label-text">UI/UX & Teknis</div></div>
+            <div class="score-item"><div class="number">${orig.scores.content}%</div><div class="label-text">Kualitas Konten</div></div>
+            <div class="score-item"><div class="number">${orig.scores.structure}%</div><div class="label-text">Struktur Halaman</div></div>
+        </div>
+        <p><strong>Total Skor On-Page:</strong> ${orig.scores.overall}% | <strong>Estimasi Posisi Awal:</strong> #${orig.estimated_rank}</p>
+    </div>
+    <div class="section">
+        <h2>🎯 Perbandingan Estimasi Ranking</h2>
+        <div class="rank-comparison">
+            <div class="rank-box rank-before"><div class="label">SEBELUM OPTIMASI</div><div class="rank-number">#${orig.estimated_rank}</div><div>Halaman ${Math.ceil(orig.estimated_rank / 10)}</div></div>
+            <div class="rank-box rank-after"><div class="label">ESTIMASI TARGET SETELAH OPTIMALISASI</div><div class="rank-number">#${opt.estimated_rank_after}</div><div>${opt.estimated_rank_after <= 10 ? ' Page 1 Google!' : 'Halaman ' + Math.ceil(opt.estimated_rank_after / 10)}</div></div>
+        </div>
+    </div>
+    <div class="section">
+        <h2>🏷️ Meta Tags SEO (Copy ke &lt;head&gt; CMS)</h2>
+        <div class="label">Meta Title (Max 60 karakter)</div><div class="value">${opt.meta_title}</div>
+        <div class="label">Meta Description (Max 160 karakter)</div><div class="value">${opt.meta_description}</div>
+        <div class="label">LSI Keywords (Max 255 karakter)</div><div class="value">${opt.lsi_keywords}</div>
+        <div class="label">SEO Friendly URL</div><div class="value">${opt.seo_friendly_url}</div>
+        <div class="label">Canonical URL</div><div class="value">${sourceUrl}</div>
+    </div>
+    <div class="section">
+        <h2> Struktur Konten (Copy ke &lt;body&gt; CMS)</h2>
+        <div class="label">Tag H1 (Judul Utama)</div><div class="value">${opt.h1}</div>
+        <h3>Saran Struktur H2</h3>
+        ${opt.h2_suggestions.map((h2, i) => '<div class="h2-item"><strong>&lt;h2&gt;' + (i + 1) + '. ' + h2 + '&lt;/h2&gt;</strong></div>').join('')}
+        <h3>Saran Alt Text Gambar</h3>
+        <ul>${opt.alt_text_suggestions.map((alt, i) => '<li><code>alt="' + alt + '"</code></li>').join('')}</ul>
+    </div>
+    <div class="section">
+        <h2>🔥 Keyword Trending untuk Referensi</h2>
+        <div class="label">🇩 Trending Indonesia</div>
+        <div style="margin-bottom: 15px;">${opt.trending_id.map(kw => '<span class="tag tag-green">' + kw + '</span>').join('')}</div>
+        <div class="label">🌍 Trending Global</div>
+        <div>${opt.trending_global.map(kw => '<span class="tag tag-blue">' + kw + '</span>').join('')}</div>
+    </div>
+    <div class="section">
+        <h2>💡 Catatan Strategi AI</h2>
+        <div class="note">${opt.optimization_notes}</div>
+    </div>
+</body>
+</html>`;
+
+                    const blob = new Blob([htmlContent], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'seo-optimized-result.html';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    this.showToast('File HTML berhasil didownload!');
+                },
+
+                copyToClipboard(text) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        this.showToast('Berhasil disalin ke clipboard!');
+                    });
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+# Environment variables (JANGAN UPLOAD API KEY!)
+.env
+
+# Python virtual environment
+venv/
+__pycache__/
+*.pyc
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# File hasil download dari tombol Export (abaikan hanya file ini)
+seo-optimized-result.html
+artikel-human-like-seo.html
